@@ -10,37 +10,29 @@ app = Flask(__name__)
 def connect_to_db():
     """Establish a connection to the PostgreSQL database"""
     conn = psycopg2.connect(
-        dbname="cnss_db",
+        dbname="CNSS",
         user="postgres",
-        password="bky2002bky", 
-        host="localhost"
+        password="yourpassword", 
+        host="localhost",
+        port="5432"
     )
     return conn
 
 @app.route('/')
 def index():
     """Render the main search page"""
-    # Get city and activity options for dropdowns
+    # Get city options for dropdown only
     conn = connect_to_db()
     cursor = conn.cursor()
     
-    # Get cities
+    # Get all cities
     cursor.execute("SELECT DISTINCT city FROM companies WHERE city IS NOT NULL ORDER BY city")
     cities = [row[0] for row in cursor.fetchall()]
-    
-    # Get activities (get all activities)
-    cursor.execute("""
-        SELECT DISTINCT activity_description 
-        FROM companies 
-        WHERE activity_description IS NOT NULL 
-        ORDER BY activity_description
-    """)
-    activities = [row[0] for row in cursor.fetchall()]
     
     cursor.close()
     conn.close()
     
-    return render_template('index.html', cities=cities, activities=activities)
+    return render_template('index.html', cities=cities)
 
 @app.route('/api/search', methods=['POST'])
 def search():
@@ -53,8 +45,8 @@ def search():
     city = data.get('city', '')
     activity = data.get('activity', '')
     min_salary = data.get('min_salary', 0)
-    max_salary = data.get('max_salary', 1000000000)  # High default
-    limit = data.get('limit', 100)  # Default limit to prevent large result sets
+    max_salary = data.get('max_salary', 1000000000)
+    limit = int(data.get('limit', 100))  # Use actual limit, no cap
     
     # Build query conditions
     conditions = []
@@ -175,6 +167,7 @@ def get_stats():
         WHERE {where_clause} AND c.city IS NOT NULL
         GROUP BY c.city
         ORDER BY avg_salary DESC
+        LIMIT 20
     """
     cursor.execute(city_query, params)
     city_stats = cursor.fetchall()
@@ -193,6 +186,7 @@ def get_stats():
         WHERE {where_clause} AND c.activity_description IS NOT NULL
         GROUP BY c.activity_description
         ORDER BY avg_salary DESC
+        LIMIT 20
     """
     cursor.execute(activity_query, params)
     activity_stats = cursor.fetchall()
@@ -256,8 +250,9 @@ def get_stats():
         JOIN documents d ON s.document_id = d.document_id
         WHERE {where_clause}
         GROUP BY c.company_name, c.city, c.activity_description
-        HAVING COUNT(DISTINCT s.employee_id) >= 5
+        HAVING COUNT(DISTINCT s.employee_id) >= 3
         ORDER BY avg_salary DESC
+        LIMIT 20
     """
     cursor.execute(top_companies_query, params)
     top_companies = cursor.fetchall()
@@ -465,6 +460,42 @@ if __name__ == "__main__":
             font-style: italic;
             color: #666;
         }
+        
+        /* Better dropdown styling */
+        select {
+            max-height: 200px;
+        }
+        
+        select option {
+            padding: 5px;
+        }
+        
+        /* Limit display styling */
+        .limit-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .limit-btn {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .limit-btn:hover {
+            background-color: #d5dbdb;
+        }
+        
+        .limit-btn.active {
+            background-color: #2c3e50;
+            color: white;
+        }
         """)
     
     # Create HTML template
@@ -507,31 +538,16 @@ if __name__ == "__main__":
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City</label>
-                                <div class="input-with-dropdown">
-                                    <input type="text" id="city" placeholder="Enter city name...">
-                                    <div class="dropdown-select">
-                                        <select id="city-select" onchange="document.getElementById('city').value = this.value">
-                                            <option value="">Select from list</option>
-                                            {% for city in cities %}
-                                            <option value="{{ city }}">{{ city }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
+                                <select id="city">
+                                    <option value="">All Cities</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city }}">{{ city }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label for="activity">Activity</label>
-                                <div class="input-with-dropdown">
-                                    <input type="text" id="activity" placeholder="Enter activity...">
-                                    <div class="dropdown-select">
-                                        <select id="activity-select" onchange="document.getElementById('activity').value = this.value">
-                                            <option value="">Select from list</option>
-                                            {% for activity in activities %}
-                                            <option value="{{ activity }}">{{ activity }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
+                                <label for="activity">Activity (type to search)</label>
+                                <input type="text" id="activity" placeholder="Enter activity keywords...">
                             </div>
                         </div>
                         
@@ -544,9 +560,19 @@ if __name__ == "__main__":
                                 <label for="max-salary">Max Salary (MAD)</label>
                                 <input type="number" id="max-salary" placeholder="Max salary..." value="10000000">
                             </div>
+                        </div>
+                        
+                        <div class="form-row">
                             <div class="form-group">
-                                <label for="limit">Result Limit</label>
-                                <input type="number" id="limit" placeholder="Maximum results..." value="100">
+                                <label>Result Limit</label>
+                                <div class="limit-options">
+                                    <button class="limit-btn active" data-limit="100">100</button>
+                                    <button class="limit-btn" data-limit="500">500</button>
+                                    <button class="limit-btn" data-limit="1000">1K</button>
+                                    <button class="limit-btn" data-limit="5000">5K</button>
+                                    <button class="limit-btn" data-limit="10000">10K</button>
+                                    <input type="number" id="limit" placeholder="Custom limit..." value="100" style="width: 120px;">
+                                </div>
                             </div>
                         </div>
                         
@@ -581,31 +607,16 @@ if __name__ == "__main__":
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="viz-city">City</label>
-                                <div class="input-with-dropdown">
-                                    <input type="text" id="viz-city" placeholder="Enter city name...">
-                                    <div class="dropdown-select">
-                                        <select id="viz-city-select" onchange="document.getElementById('viz-city').value = this.value">
-                                            <option value="">Select from list</option>
-                                            {% for city in cities %}
-                                            <option value="{{ city }}">{{ city }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
+                                <select id="viz-city">
+                                    <option value="">All Cities</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city }}">{{ city }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label for="viz-activity">Activity</label>
-                                <div class="input-with-dropdown">
-                                    <input type="text" id="viz-activity" placeholder="Enter activity...">
-                                    <div class="dropdown-select">
-                                        <select id="viz-activity-select" onchange="document.getElementById('viz-activity').value = this.value">
-                                            <option value="">Select from list</option>
-                                            {% for activity in activities %}
-                                            <option value="{{ activity }}">{{ activity }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
+                                <label for="viz-activity">Activity (type to search)</label>
+                                <input type="text" id="viz-activity" placeholder="Enter activity keywords...">
                             </div>
                         </div>
                         
@@ -648,22 +659,6 @@ if __name__ == "__main__":
             </div>
             
             <script>
-                // Add additional styles for the combined input/dropdown
-                document.head.insertAdjacentHTML('beforeend', `
-                    <style>
-                        .input-with-dropdown {
-                            display: flex;
-                            gap: 10px;
-                        }
-                        .input-with-dropdown input {
-                            flex: 2;
-                        }
-                        .dropdown-select {
-                            flex: 1;
-                        }
-                    </style>
-                `);
-                
                 // Helper function to format currency
                 function formatCurrency(value) {
                     return new Intl.NumberFormat('fr-MA', {
@@ -689,6 +684,32 @@ if __name__ == "__main__":
                         // Show the target tab content
                         const targetId = this.getAttribute('data-target');
                         document.getElementById(targetId).classList.add('active');
+                    });
+                });
+                
+                // Limit button functionality
+                document.querySelectorAll('.limit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Remove active class from all limit buttons
+                        document.querySelectorAll('.limit-btn').forEach(b => b.classList.remove('active'));
+                        // Add active class to clicked button
+                        this.classList.add('active');
+                        // Set the limit input value
+                        document.getElementById('limit').value = this.dataset.limit;
+                    });
+                });
+                
+                // Update limit buttons when input changes
+                document.getElementById('limit').addEventListener('input', function() {
+                    const value = this.value;
+                    let found = false;
+                    document.querySelectorAll('.limit-btn').forEach(btn => {
+                        if (btn.dataset.limit === value) {
+                            btn.classList.add('active');
+                            found = true;
+                        } else {
+                            btn.classList.remove('active');
+                        }
                     });
                 });
                 
@@ -746,11 +767,13 @@ if __name__ == "__main__":
                             table += `<td>${row.full_name}</td>`;
                             table += `<td>${row.company_name}</td>`;
                             table += `<td>${row.city || ''}</td>`;
-                            table += `<td>${row.activity_description || ''}</td>`;
+                            table += `<td>${(row.activity_description || '').substring(0, 50)}${row.activity_description && row.activity_description.length > 50 ? '...' : ''}</td>`;
                             table += `<td>${formatCurrency(row.salary_amount)}</td>`;
                             table += '</tr>';
                         });
                         table += '</tbody></table>';
+                        
+                        table += `<p><strong>Showing ${results.length} results</strong></p>`;
                         
                         document.getElementById('results-table').innerHTML = table;
                     })
@@ -764,13 +787,14 @@ if __name__ == "__main__":
                 document.getElementById('reset-button').addEventListener('click', function() {
                     document.getElementById('company-name').value = '';
                     document.getElementById('employee-name').value = '';
-                    document.getElementById('city').value = '';
-                    document.getElementById('city-select').selectedIndex = 0;
+                    document.getElementById('city').selectedIndex = 0;
                     document.getElementById('activity').value = '';
-                    document.getElementById('activity-select').selectedIndex = 0;
                     document.getElementById('min-salary').value = '0';
                     document.getElementById('max-salary').value = '10000000';
                     document.getElementById('limit').value = '100';
+                    // Reset limit buttons
+                    document.querySelectorAll('.limit-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('.limit-btn[data-limit="100"]').classList.add('active');
                 });
                 
                 // Charts
@@ -802,9 +826,6 @@ if __name__ == "__main__":
                                 title: {
                                     display: true,
                                     text: 'Salary Distribution'
-                                },
-                                legend: {
-                                    position: 'top',
                                 }
                             },
                             scales: {
@@ -854,9 +875,6 @@ if __name__ == "__main__":
                                 title: {
                                     display: true,
                                     text: 'Salary Comparison by City'
-                                },
-                                legend: {
-                                    position: 'top',
                                 }
                             },
                             scales: {
@@ -879,12 +897,6 @@ if __name__ == "__main__":
                                     title: {
                                         display: true,
                                         text: 'Number of Employees'
-                                    }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'City'
                                     }
                                 }
                             }
@@ -912,9 +924,6 @@ if __name__ == "__main__":
                                 title: {
                                     display: true,
                                     text: 'Top Activities by Average Salary'
-                                },
-                                legend: {
-                                    position: 'top',
                                 }
                             },
                             scales: {
@@ -923,12 +932,6 @@ if __name__ == "__main__":
                                     title: {
                                         display: true,
                                         text: 'Average Salary (MAD)'
-                                    }
-                                },
-                                y: {
-                                    title: {
-                                        display: true,
-                                        text: 'Activity'
                                     }
                                 }
                             }
@@ -956,26 +959,6 @@ if __name__ == "__main__":
                                 title: {
                                     display: true,
                                     text: 'Top Companies by Average Salary'
-                                },
-                                legend: {
-                                    position: 'top',
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        afterLabel: function(context) {
-                                            const dataset = context.chart.data.datasets[0];
-                                            const index = context.dataIndex;
-                                            const metaData = context.chart.data.metaData[index];
-                                            if (metaData) {
-                                                return [
-                                                    'City: ' + metaData.city,
-                                                    'Activity: ' + metaData.activity,
-                                                    'Employees: ' + metaData.employees
-                                                ];
-                                            }
-                                            return [];
-                                        }
-                                    }
                                 }
                             },
                             scales: {
@@ -984,12 +967,6 @@ if __name__ == "__main__":
                                     title: {
                                         display: true,
                                         text: 'Average Salary (MAD)'
-                                    }
-                                },
-                                y: {
-                                    title: {
-                                        display: true,
-                                        text: 'Company'
                                     }
                                 }
                             }
@@ -1008,34 +985,27 @@ if __name__ == "__main__":
                     charts.salaryDistribution.data.datasets[0].data = salaryDist.map(d => d.count);
                     charts.salaryDistribution.update();
                     
-                    // Update city comparison chart (top 10 cities)
-                    const cityStats = data.city_stats.slice(0, 10);
+                    // Update city comparison chart
+                    const cityStats = data.city_stats.slice(0, 15);
                     charts.cityComparison.data.labels = cityStats.map(c => c.city);
                     charts.cityComparison.data.datasets[0].data = cityStats.map(c => c.avg_salary);
                     charts.cityComparison.data.datasets[1].data = cityStats.map(c => c.employee_count);
                     charts.cityComparison.update();
                     
-                    // Update activity salary chart (top 10 activities)
-                    const activityStats = data.activity_stats.slice(0, 10);
-                    charts.activitySalary.data.labels = activityStats.map(a => a.activity_description.length > 30 ? 
-                        a.activity_description.substring(0, 30) + '...' : a.activity_description);
+                    // Update activity salary chart
+                    const activityStats = data.activity_stats.slice(0, 15);
+                    charts.activitySalary.data.labels = activityStats.map(a => 
+                        a.activity_description.length > 40 ? 
+                        a.activity_description.substring(0, 40) + '...' : a.activity_description);
                     charts.activitySalary.data.datasets[0].data = activityStats.map(a => a.avg_salary);
                     charts.activitySalary.update();
                     
-                    // Update top companies chart (top 10 companies)
-                    const topCompanies = data.top_companies.slice(0, 10);
-                    charts.topCompanies.data.labels = topCompanies.map(c => c.company_name.length > 30 ? 
-                        c.company_name.substring(0, 30) + '...' : c.company_name);
+                    // Update top companies chart
+                    const topCompanies = data.top_companies.slice(0, 15);
+                    charts.topCompanies.data.labels = topCompanies.map(c => 
+                        c.company_name.length > 40 ? 
+                        c.company_name.substring(0, 40) + '...' : c.company_name);
                     charts.topCompanies.data.datasets[0].data = topCompanies.map(c => c.avg_salary);
-                    
-                    // Add metadata for tooltips
-                    charts.topCompanies.data.metaData = topCompanies.map(c => ({
-                        city: c.city || 'Unknown',
-                        activity: c.activity_description && c.activity_description.length > 40 ? 
-                            c.activity_description.substring(0, 40) + '...' : (c.activity_description || 'Unknown'),
-                        employees: c.employee_count || 0
-                    }));
-                    
                     charts.topCompanies.update();
                 }
                 
@@ -1077,10 +1047,8 @@ if __name__ == "__main__":
                 document.getElementById('reset-viz-button').addEventListener('click', function() {
                     document.getElementById('viz-company-name').value = '';
                     document.getElementById('viz-employee-name').value = '';
-                    document.getElementById('viz-city').value = '';
-                    document.getElementById('viz-city-select').selectedIndex = 0;
+                    document.getElementById('viz-city').selectedIndex = 0;
                     document.getElementById('viz-activity').value = '';
-                    document.getElementById('viz-activity-select').selectedIndex = 0;
                     document.getElementById('viz-min-salary').value = '0';
                     document.getElementById('viz-max-salary').value = '10000000';
                 });

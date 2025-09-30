@@ -165,3 +165,39 @@
             color: #666;
         }
         
+        /* Better dropdown styling */
+        select {
+            max-height: 200px;
+        }
+        
+        select option {
+            padding: 5px;
+        }
+        
+        /* Limit display styling */
+        .limit-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .limit-btn {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .limit-btn:hover {
+            background-color: #d5dbdb;
+        }
+        
+        .limit-btn.active {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
