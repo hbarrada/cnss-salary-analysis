@@ -1,0 +1,562 @@
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>CNSS Data Explorer</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        </head>
+        <body>
+            <header>
+                <h1>CNSS Data Explorer</h1>
+                <p>Search and analyze salary data from CNSS declarations</p>
+            </header>
+            
+            <div class="container">
+                <div class="tabs">
+                    <div class="tab active" data-target="search-tab">Search</div>
+                    <div class="tab" data-target="visualization-tab">Visualization</div>
+                </div>
+                
+                <div id="search-tab" class="tab-content active">
+                    <div class="search-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="company-name">Company Name</label>
+                                <input type="text" id="company-name" placeholder="Enter company name...">
+                            </div>
+                            <div class="form-group">
+                                <label for="employee-name">Employee Name</label>
+                                <input type="text" id="employee-name" placeholder="Enter employee name...">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <select id="city">
+                                    <option value="">All Cities</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city }}">{{ city }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="activity">Activity (type to search)</label>
+                                <input type="text" id="activity" placeholder="Enter activity keywords...">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="min-salary">Min Salary (MAD)</label>
+                                <input type="number" id="min-salary" placeholder="Min salary..." value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="max-salary">Max Salary (MAD)</label>
+                                <input type="number" id="max-salary" placeholder="Max salary..." value="10000000">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Result Limit</label>
+                                <div class="limit-options">
+                                    <button class="limit-btn active" data-limit="100">100</button>
+                                    <button class="limit-btn" data-limit="500">500</button>
+                                    <button class="limit-btn" data-limit="1000">1K</button>
+                                    <button class="limit-btn" data-limit="5000">5K</button>
+                                    <button class="limit-btn" data-limit="10000">10K</button>
+                                    <input type="number" id="limit" placeholder="Custom limit..." value="100" style="width: 120px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button id="search-button">Search</button>
+                            <button id="reset-button">Reset</button>
+                        </div>
+                    </div>
+                    
+                    <div class="results-container" id="results-container">
+                        <h2>Search Results</h2>
+                        <div id="results-table"></div>
+                    </div>
+                </div>
+                
+                <div id="visualization-tab" class="tab-content">
+                    <div class="search-form">
+                        <h2>Visualization Filters</h2>
+                        <p>Apply filters to generate visualizations based on specific criteria</p>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="viz-company-name">Company Name</label>
+                                <input type="text" id="viz-company-name" placeholder="Enter company name...">
+                            </div>
+                            <div class="form-group">
+                                <label for="viz-employee-name">Employee Name</label>
+                                <input type="text" id="viz-employee-name" placeholder="Enter employee name...">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="viz-city">City</label>
+                                <select id="viz-city">
+                                    <option value="">All Cities</option>
+                                    {% for city in cities %}
+                                    <option value="{{ city }}">{{ city }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="viz-activity">Activity (type to search)</label>
+                                <input type="text" id="viz-activity" placeholder="Enter activity keywords...">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="viz-min-salary">Min Salary (MAD)</label>
+                                <input type="number" id="viz-min-salary" placeholder="Min salary..." value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="viz-max-salary">Max Salary (MAD)</label>
+                                <input type="number" id="viz-max-salary" placeholder="Max salary..." value="10000000">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button id="generate-viz-button">Generate Visualizations</button>
+                            <button id="reset-viz-button">Reset</button>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-container">
+                        <div class="chart-box">
+                            <h3 class="chart-title">Salary Distribution</h3>
+                            <canvas id="salary-distribution-chart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3 class="chart-title">City Comparison</h3>
+                            <canvas id="city-comparison-chart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3 class="chart-title">Top Activities by Salary</h3>
+                            <canvas id="activity-salary-chart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3 class="chart-title">Top Companies by Average Salary</h3>
+                            <canvas id="top-companies-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                // Helper function to format currency
+                function formatCurrency(value) {
+                    return new Intl.NumberFormat('fr-MA', {
+                        style: 'currency',
+                        currency: 'MAD',
+                        minimumFractionDigits: 2
+                    }).format(value);
+                }
+                
+                // Tab functionality
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Remove active class from all tabs
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        // Add active class to clicked tab
+                        this.classList.add('active');
+                        
+                        // Hide all tab content
+                        document.querySelectorAll('.tab-content').forEach(content => {
+                            content.classList.remove('active');
+                        });
+                        
+                        // Show the target tab content
+                        const targetId = this.getAttribute('data-target');
+                        document.getElementById(targetId).classList.add('active');
+                    });
+                });
+                
+                // Limit button functionality
+                document.querySelectorAll('.limit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Remove active class from all limit buttons
+                        document.querySelectorAll('.limit-btn').forEach(b => b.classList.remove('active'));
+                        // Add active class to clicked button
+                        this.classList.add('active');
+                        // Set the limit input value
+                        document.getElementById('limit').value = this.dataset.limit;
+                    });
+                });
+                
+                // Update limit buttons when input changes
+                document.getElementById('limit').addEventListener('input', function() {
+                    const value = this.value;
+                    let found = false;
+                    document.querySelectorAll('.limit-btn').forEach(btn => {
+                        if (btn.dataset.limit === value) {
+                            btn.classList.add('active');
+                            found = true;
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                });
+                
+                // Handle search functionality
+                document.getElementById('search-button').addEventListener('click', function() {
+                    const company = document.getElementById('company-name').value;
+                    const employee = document.getElementById('employee-name').value;
+                    const city = document.getElementById('city').value;
+                    const activity = document.getElementById('activity').value;
+                    const minSalary = document.getElementById('min-salary').value;
+                    const maxSalary = document.getElementById('max-salary').value;
+                    const limit = document.getElementById('limit').value;
+                    
+                    // Show loading state
+                    document.getElementById('results-table').innerHTML = '<div class="loading"></div>';
+                    
+                    // Make API call
+                    fetch('/api/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            company_name: company,
+                            employee_name: employee,
+                            city: city,
+                            activity: activity,
+                            min_salary: minSalary,
+                            max_salary: maxSalary,
+                            limit: limit
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const results = data.results;
+                        
+                        if (results.length === 0) {
+                            document.getElementById('results-table').innerHTML = '<p>No results found.</p>';
+                            return;
+                        }
+                        
+                        // Create table
+                        let table = '<table>';
+                        table += '<thead><tr>';
+                        table += '<th>Employee</th>';
+                        table += '<th>Company</th>';
+                        table += '<th>City</th>';
+                        table += '<th>Activity</th>';
+                        table += '<th>Salary (MAD)</th>';
+                        table += '</tr></thead>';
+                        
+                        table += '<tbody>';
+                        results.forEach(row => {
+                            table += '<tr>';
+                            table += `<td>${row.full_name}</td>`;
+                            table += `<td>${row.company_name}</td>`;
+                            table += `<td>${row.city || ''}</td>`;
+                            table += `<td>${(row.activity_description || '').substring(0, 50)}${row.activity_description && row.activity_description.length > 50 ? '...' : ''}</td>`;
+                            table += `<td>${formatCurrency(row.salary_amount)}</td>`;
+                            table += '</tr>';
+                        });
+                        table += '</tbody></table>';
+                        
+                        table += `<p><strong>Showing ${results.length} results</strong></p>`;
+                        
+                        document.getElementById('results-table').innerHTML = table;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('results-table').innerHTML = '<p>Error fetching results.</p>';
+                    });
+                });
+                
+                // Reset search form
+                document.getElementById('reset-button').addEventListener('click', function() {
+                    document.getElementById('company-name').value = '';
+                    document.getElementById('employee-name').value = '';
+                    document.getElementById('city').selectedIndex = 0;
+                    document.getElementById('activity').value = '';
+                    document.getElementById('min-salary').value = '0';
+                    document.getElementById('max-salary').value = '10000000';
+                    document.getElementById('limit').value = '100';
+                    // Reset limit buttons
+                    document.querySelectorAll('.limit-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('.limit-btn[data-limit="100"]').classList.add('active');
+                });
+                
+                // Charts
+                let charts = {
+                    salaryDistribution: null,
+                    cityComparison: null,
+                    activitySalary: null,
+                    topCompanies: null
+                };
+                
+                function initializeCharts() {
+                    // Initialize empty charts
+                    const salaryDistCtx = document.getElementById('salary-distribution-chart').getContext('2d');
+                    charts.salaryDistribution = new Chart(salaryDistCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Number of Employees',
+                                data: [],
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Salary Distribution'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Employees'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Salary Range (MAD)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // City comparison chart
+                    const cityCompCtx = document.getElementById('city-comparison-chart').getContext('2d');
+                    charts.cityComparison = new Chart(cityCompCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Average Salary',
+                                data: [],
+                                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            }, {
+                                label: 'Number of Employees',
+                                data: [],
+                                backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                borderWidth: 1,
+                                type: 'line',
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Salary Comparison by City'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    type: 'linear',
+                                    position: 'left',
+                                    title: {
+                                        display: true,
+                                        text: 'Average Salary (MAD)'
+                                    }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    type: 'linear',
+                                    position: 'right',
+                                    grid: {
+                                        drawOnChartArea: false
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Employees'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Activity salary chart
+                    const activityCtx = document.getElementById('activity-salary-chart').getContext('2d');
+                    charts.activitySalary = new Chart(activityCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Average Salary',
+                                data: [],
+                                backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            indexAxis: 'y',
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Top Activities by Average Salary'
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Average Salary (MAD)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Top companies chart
+                    const companiesCtx = document.getElementById('top-companies-chart').getContext('2d');
+                    charts.topCompanies = new Chart(companiesCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Average Salary',
+                                data: [],
+                                backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            indexAxis: 'y',
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Top Companies by Average Salary'
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Average Salary (MAD)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Initialize charts on page load
+                initializeCharts();
+                
+                // Function to update charts with new data
+                function updateCharts(data) {
+                    // Update salary distribution chart
+                    const salaryDist = data.salary_distribution;
+                    charts.salaryDistribution.data.labels = salaryDist.map(d => d.salary_range);
+                    charts.salaryDistribution.data.datasets[0].data = salaryDist.map(d => d.count);
+                    charts.salaryDistribution.update();
+                    
+                    // Update city comparison chart
+                    const cityStats = data.city_stats.slice(0, 15);
+                    charts.cityComparison.data.labels = cityStats.map(c => c.city);
+                    charts.cityComparison.data.datasets[0].data = cityStats.map(c => c.avg_salary);
+                    charts.cityComparison.data.datasets[1].data = cityStats.map(c => c.employee_count);
+                    charts.cityComparison.update();
+                    
+                    // Update activity salary chart
+                    const activityStats = data.activity_stats.slice(0, 15);
+                    charts.activitySalary.data.labels = activityStats.map(a => 
+                        a.activity_description.length > 40 ? 
+                        a.activity_description.substring(0, 40) + '...' : a.activity_description);
+                    charts.activitySalary.data.datasets[0].data = activityStats.map(a => a.avg_salary);
+                    charts.activitySalary.update();
+                    
+                    // Update top companies chart
+                    const topCompanies = data.top_companies.slice(0, 15);
+                    charts.topCompanies.data.labels = topCompanies.map(c => 
+                        c.company_name.length > 40 ? 
+                        c.company_name.substring(0, 40) + '...' : c.company_name);
+                    charts.topCompanies.data.datasets[0].data = topCompanies.map(c => c.avg_salary);
+                    charts.topCompanies.update();
+                }
+                
+                // Generate visualizations
+                document.getElementById('generate-viz-button').addEventListener('click', function() {
+                    const company = document.getElementById('viz-company-name').value;
+                    const employee = document.getElementById('viz-employee-name').value;
+                    const city = document.getElementById('viz-city').value;
+                    const activity = document.getElementById('viz-activity').value;
+                    const minSalary = document.getElementById('viz-min-salary').value;
+                    const maxSalary = document.getElementById('viz-max-salary').value;
+                    
+                    // Make API call
+                    fetch('/api/stats', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            company_name: company,
+                            employee_name: employee,
+                            city: city,
+                            activity: activity,
+                            min_salary: minSalary,
+                            max_salary: maxSalary
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        updateCharts(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error generating visualizations: ' + error);
+                    });
+                });
+                
+                // Reset visualization form
+                document.getElementById('reset-viz-button').addEventListener('click', function() {
+                    document.getElementById('viz-company-name').value = '';
+                    document.getElementById('viz-employee-name').value = '';
+                    document.getElementById('viz-city').selectedIndex = 0;
+                    document.getElementById('viz-activity').value = '';
+                    document.getElementById('viz-min-salary').value = '0';
+                    document.getElementById('viz-max-salary').value = '10000000';
+                });
+                
+                // Trigger initial search on page load
+                document.getElementById('search-button').click();
+                
+                // Trigger initial visualization on page load
+                document.getElementById('generate-viz-button').click();
+            </script>
+        </body>
+        </html>
+        
