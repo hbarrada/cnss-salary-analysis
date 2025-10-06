@@ -27,15 +27,19 @@ This project ingests CNSS salary declarations, cleans and loads them into Postgr
 ## Screenshots
 
 ### Advanced Search Interface
+
 ![Search Interface](assets/screenshots/search-interface.png)
 
 ### Interactive Visualizations
+
 ![Visualization Dashboard](assets/screenshots/visualization-cards.png)
 
 ### PDF Report - Top Companies Analysis
+
 ![Top Companies](assets/screenshots/top-companies-pdf.png)
 
 ### Income Inequality Analysis (Lorenz Curve)
+
 ![Lorenz Curve](assets/screenshots/lorenz-curve.png)
 
 ## ⚙️ Features
@@ -108,11 +112,11 @@ salary_records (
 - PostgreSQL **12+**
 - `pip`
 
-### Setup
+### etup
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/cnss-salary-analysis.git
+git clone https://github.com/hbarrada/cnss-salary-analysis.git
 cd cnss-salary-analysis
 
 # Virtual environment
