@@ -1,0 +1,22 @@
+# Sensitive data
+backup.sql
+*.env
+.env
+
+# Directories with sensitive data
+Data Processing/
+Database/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+
+# Output files
+visualizations/*.pdf
+
+# IDE
+.vscode/
+.idea/

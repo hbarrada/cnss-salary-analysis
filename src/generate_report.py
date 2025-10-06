@@ -11,6 +11,7 @@ from sqlalchemy import create_engine
 import matplotlib.ticker as mtick
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
+from config import DB_CONFIG
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -26,13 +27,9 @@ if not os.path.exists(OUTPUT_DIR):
 
 def connect_to_db():
     """Establish a connection to the PostgreSQL database"""
-    conn = psycopg2.connect(
-        dbname="cnss_db",
-        user="postgres",
-        password="bky2002bky",
-        host="localhost"
-    )
+    conn = psycopg2.connect(**DB_CONFIG)
     return conn
+
 
 def get_sqlalchemy_engine():
     """Create a SQLAlchemy engine for pandas to use"""

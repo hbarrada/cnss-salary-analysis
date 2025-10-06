@@ -11,7 +11,7 @@ def connect_to_db():
     conn = psycopg2.connect(
         dbname="cnss_db",
         user="postgres",
-        password="password",  # Replace with your actual password
+        password="bky2002bkyA",  # Replace with your actual password
         host="localhost"
     )
     return conn

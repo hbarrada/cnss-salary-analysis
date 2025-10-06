@@ -4,18 +4,13 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import pandas as pd
 import json
+from config import DB_CONFIG
 
 app = Flask(__name__)
 
 def connect_to_db():
     """Establish a connection to the PostgreSQL database"""
-    conn = psycopg2.connect(
-        dbname="CNSS",
-        user="postgres",
-        password="yourpassword", 
-        host="localhost",
-        port="5432"
-    )
+    conn = psycopg2.connect(**DB_CONFIG)
     return conn
 
 @app.route('/')
