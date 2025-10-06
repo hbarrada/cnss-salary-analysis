@@ -210,7 +210,7 @@ cnss-salary-analysis/
 
 ## 🎓 Project Context
 
-This is a **personal master's project** demonstrating:
+This is a **personal project** demonstrating:
 
 - End-to-end **data engineering** (ETL → DB → API → UI)
 - **Statistical analysis** & inequality metrics
