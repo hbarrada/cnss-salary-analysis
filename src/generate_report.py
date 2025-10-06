@@ -4,14 +4,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import psycopg2
-from psycopg2.extras import RealDictCursor
-import json
 from datetime import datetime
-from sqlalchemy import create_engine
 import matplotlib.ticker as mtick
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 from config import DB_CONFIG
+from sqlalchemy import create_engine  # ADD THIS LINE
 import urllib.parse as up
 import warnings
 warnings.filterwarnings("ignore")
