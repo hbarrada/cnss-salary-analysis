@@ -1,4 +1,4 @@
-# CNSS Salary Data Analysis System
+$# CNSS Salary Data Analysis System
 
 A full-stack **data engineering and visualization platform** for analyzing salary statistics from CNSS declarations.
 Built as a master’s project to demonstrate **ETL pipeline design, database optimization, statistical analysis, and interactive dashboards**.
@@ -24,25 +24,19 @@ This project ingests CNSS salary declarations, cleans and loads them into Postgr
 
 ---
 
-## 🖼️ Screenshots
+## Screenshots
 
-> 🔍 Advanced Search Interface
+### Advanced Search Interface
+![Search Interface](assets/screenshots/search-interface.png)
 
-![Search Tab](assets/screenshots/search-tab.png)
+### Interactive Visualizations
+![Visualization Dashboard](assets/screenshots/visualization-cards.png)
 
-### 📊 Visualization Dashboard
+### PDF Report - Top Companies Analysis
+![Top Companies](assets/screenshots/top-companies-pdf.png)
 
-![Visualization Cards](assets/screenshots/visualization-cards.png)
-
-### 📈 Top Business Activities by Employees
-
-![Top Activities](assets/screenshots/top-activities.png)
-
-### 📉 Income Inequality (Lorenz Curve)
-
+### Income Inequality Analysis (Lorenz Curve)
 ![Lorenz Curve](assets/screenshots/lorenz-curve.png)
-
----
 
 ## ⚙️ Features
 
