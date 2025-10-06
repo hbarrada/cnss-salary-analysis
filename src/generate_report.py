@@ -12,6 +12,7 @@ import matplotlib.ticker as mtick
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 from config import DB_CONFIG
+import urllib.parse as up
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -32,8 +33,12 @@ def connect_to_db():
 
 
 def get_sqlalchemy_engine():
-    """Create a SQLAlchemy engine for pandas to use"""
-    return create_engine('postgresql://postgres:bky2002bky@localhost:5432/cnss_db')
+    user = os.getenv("DB_USER", "postgres")
+    pwd  = os.getenv("DB_PASSWORD", "")
+    host = os.getenv("DB_HOST", "localhost")
+    port = os.getenv("DB_PORT", "5432")
+    name = os.getenv("DB_NAME", "cnss_db")
+    return create_engine(f"postgresql://{up.quote(user)}:{up.quote(pwd)}@{host}:{port}/{name}")
 
 def format_number(num):
     """Format large numbers for readability"""
