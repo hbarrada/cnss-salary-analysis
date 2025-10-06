@@ -1,6 +1,6 @@
 # CNSS Salary Data Analysis System
 
-A full-stack **data engineering and visualization platform** for analyzing salary statistics from CNSS declarations.  
+A full-stack **data engineering and visualization platform** for analyzing salary statistics from CNSS declarations.
 Built as a master’s project to demonstrate **ETL pipeline design, database optimization, statistical analysis, and interactive dashboards**.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
@@ -14,11 +14,11 @@ Built as a master’s project to demonstrate **ETL pipeline design, database opt
 
 This project ingests CNSS salary declarations, cleans and loads them into PostgreSQL, and exposes an interactive Flask app for exploratory analysis and automated reporting.
 
-- **Automated ETL**: PDF parsing → cleaning → PostgreSQL  
-- **Database optimization**: normalization, B-tree indexes, trigram fuzzy search, materialized views  
-- **Statistics**: Gini, Hoover, Atkinson, Lorenz curves, percentiles (P10–P99.9), deciles  
-- **Dashboards**: salary distributions, city & industry comparisons, top companies  
-- **Reports**: one-click PDF with 14+ visualizations  
+- **Automated ETL**: PDF parsing → cleaning → PostgreSQL
+- **Database optimization**: normalization, B-tree indexes, trigram fuzzy search, materialized views
+- **Statistics**: Gini, Hoover, Atkinson, Lorenz curves, percentiles (P10–P99.9), deciles
+- **Dashboards**: salary distributions, city & industry comparisons, top companies
+- **Reports**: one-click PDF with 14+ visualizations
 
 **Tech Stack:** Python, Flask, PostgreSQL, SQLAlchemy, pandas, matplotlib, Chart.js
 
@@ -26,18 +26,20 @@ This project ingests CNSS salary declarations, cleans and loads them into Postgr
 
 ## 🖼️ Screenshots
 
-> Put your PNGs under `assets/screenshots/` with these names (or update the paths).
+> 🔍 Advanced Search Interface
 
-### 🔍 Advanced Search Interface
 ![Search Tab](assets/screenshots/search-tab.png)
 
 ### 📊 Visualization Dashboard
+
 ![Visualization Cards](assets/screenshots/visualization-cards.png)
 
 ### 📈 Top Business Activities by Employees
+
 ![Top Activities](assets/screenshots/top-activities.png)
 
 ### 📉 Income Inequality (Lorenz Curve)
+
 ![Lorenz Curve](assets/screenshots/lorenz-curve.png)
 
 ---
@@ -45,16 +47,19 @@ This project ingests CNSS salary declarations, cleans and loads them into Postgr
 ## ⚙️ Features
 
 **Web Application**
+
 - Multi-criteria **search** with fuzzy text matching (PostgreSQL trigram)
 - **Interactive charts** (Chart.js) with filters
 - Export options for filtered datasets and charts
 
 **Statistical Analysis**
+
 - Inequality metrics: **Gini**, **Hoover**, **Atkinson**
 - **Lorenz** curves, deciles, percentiles
 - Automated **PDF report** with plots & summaries
 
 **Data Pipeline**
+
 - PDF parsing with `pdfplumber` + regex
 - Cleaning, deduplication, normalization, error handling
 - PostgreSQL schema optimized for analytics
@@ -104,11 +109,13 @@ salary_records (
 ## 🛠️ Installation
 
 ### Prerequisites
+
 - Python **3.8+**
 - PostgreSQL **12+**
 - `pip`
 
 ### Setup
+
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/cnss-salary-analysis.git
@@ -132,6 +139,7 @@ cp .env.example .env   # then edit .env with your credentials
 ```
 
 ### `.env` Example (matches `config.py`)
+
 ```env
 DB_HOST=localhost
 DB_PORT=5432
@@ -144,11 +152,13 @@ FLASK_ENV=development
 ```
 
 ### Optional: Load Sample Data
+
 ```bash
 psql cnss_db < sql/sample_data.sql
 ```
 
 ### Run the App
+
 ```bash
 python -m src.app
 # then open http://localhost:5000
@@ -159,6 +169,7 @@ python -m src.app
 ## 📑 Usage
 
 **Generate Statistical Report**
+
 ```bash
 python src/generate_report.py
 ```
@@ -166,6 +177,7 @@ python src/generate_report.py
 Outputs: `visualizations/salary_analysis_report.pdf`
 
 **Example Questions You Can Answer**
+
 - Salary distribution in **Casablanca vs Rabat**
 - Industries with the **highest average salaries**
 - Share of income going to the **top 10%**
@@ -201,6 +213,7 @@ cnss-salary-analysis/
 ## 🎓 Project Context
 
 This is a **personal master's project** demonstrating:
+
 - End-to-end **data engineering** (ETL → DB → API → UI)
 - **Statistical analysis** & inequality metrics
 - **Full-stack development** (Flask + PostgreSQL + JS)
