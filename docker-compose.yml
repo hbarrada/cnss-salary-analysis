@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:15
+    container_name: cnss_db
+    environment:
+      POSTGRES_DB: cnss_db
+      POSTGRES_USER: cnss_user
+      POSTGRES_PASSWORD: cnss_pass
+    ports:
+      - "5432:5432"
+    # Persist data and auto-run your SQL on first boot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cnss_user -d cnss_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    container_name: cnss_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # URL that SQLAlchemy understands
+      DATABASE_URL: postgresql://cnss_user:cnss_pass@db:5432/cnss_db
+      FLASK_SECRET_KEY: dev-secret-key
+      FLASK_ENV: development
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    # For quick iteration, mount your code into the container (dev mode)
+    volumes:
+      - .:/app
+    command: ["python", "-m", "src.app"]
+
+volumes:
+  pgdata:
