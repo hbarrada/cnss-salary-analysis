@@ -116,7 +116,30 @@ salary_records (
 - PostgreSQL **12+**
 - `pip`
 
-### etup
+### Setup
+
+
+#### Option A — Docker (recommended)
+
+<pre class="overflow-visible!" data-start="1325" data-end="1755"><div class="contain-inline-size rounded-2xl relative bg-token-sidebar-surface-primary"><div class="sticky top-9"><div class="absolute end-0 bottom-0 flex h-9 items-center pe-2"><div class="bg-token-bg-elevated-secondary text-token-text-secondary flex items-center gap-4 rounded-sm px-2 font-sans text-xs"></div></div></div><div class="overflow-y-auto p-4" dir="ltr"><code class="whitespace-pre! language-bash"><span><span># clone & enter the repo</span><span>
+git </span><span>clone</span><span> https://github.com/<you>/cnss-salary-analysis.git
+</span><span>cd</span><span> cnss-salary-analysis
+
+</span><span># start Postgres + App (will build images on first run)</span><span>
+docker compose up --build
+</span><span># App → http://localhost:5000</span><span>
+
+</span><span># (Optional) connect to DB from host:</span><span>
+</span><span># If you mapped 5432:5432 -> psql -h localhost -p 5432 -U cnss_user -d cnss_db</span><span>
+</span><span># If you mapped 5433:5432 -> psql -h localhost -p 5433 -U cnss_user -d cnss_db</span><span>
+</span></span></code></div></div></pre>
+
+> First run will auto-create schema and (optionally) seed data from `./sql/*.sql`.
+>
+> To **reset** DB: `docker compose down -v` then `docker compose up`.
+
+
+#### Option B — Local (bare-metal)
 
 ```bash
 # Clone repository
@@ -220,7 +243,6 @@ This is a **personal project** demonstrating:
 - **Statistical analysis** & inequality metrics
 - **Full-stack development** (Flask + PostgreSQL + JS)
 - **Interactive dashboards** for decision-making
-
 
 ## 🔒 Data ethics & privacy
 
