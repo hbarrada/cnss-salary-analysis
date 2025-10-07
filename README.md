@@ -1,4 +1,4 @@
-$# CNSS Salary Data Analysis System
+# CNSS Salary Data Analysis System
 
 A full-stack **data engineering and visualization platform** for analyzing salary statistics from CNSS declarations.
 Built as a master’s project to demonstrate **ETL pipeline design, database optimization, statistical analysis, and interactive dashboards**.
