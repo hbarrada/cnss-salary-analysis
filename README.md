@@ -3,6 +3,10 @@
 A full-stack **data engineering and visualization platform** for analyzing salary statistics from CNSS declarations.
 Built as a master’s project to demonstrate **ETL pipeline design, database optimization, statistical analysis, and interactive dashboards**.
 
+( **CNSS = Caisse Nationale de Sécurité Sociale / national social security** ).
+
+Built to demonstrate ETL pipelines, database optimization, statistical analysis, and interactive dashboards.
+
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue.svg)
@@ -216,6 +220,13 @@ This is a **personal project** demonstrating:
 - **Statistical analysis** & inequality metrics
 - **Full-stack development** (Flask + PostgreSQL + JS)
 - **Interactive dashboards** for decision-making
+
+
+## 🔒 Data ethics & privacy
+
+* The repository ships **synthetic/anonymized** sample data only.
+* Do **not** upload any real CNSS declarations or PII.
+* Remove or hash all direct identifiers; audit logs are provided in ETL for traceability.
 
 ---
 
